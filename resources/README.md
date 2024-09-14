@@ -1,0 +1,1 @@
+In this folder, we place all files that are automatically downloaded (such as model checkpoints).

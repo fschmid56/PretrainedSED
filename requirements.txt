@@ -1,0 +1,3 @@
+librosa
+pandas
+sed_scores_eval
