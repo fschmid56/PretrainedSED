@@ -93,6 +93,11 @@ class PredictionsWrapper(nn.Module):
         if not os.path.exists(ckpt_file):
             download_url_to_file(CHECKPOINT_URLS[checkpoint], ckpt_file)
         state_dict = torch.load(ckpt_file, map_location="cpu", weights_only=True)
+        # compatibility
+        if 'fpasst' in checkpoint:
+            state_dict = {("model." if not k.startswith("model.model.") and k.startswith("model.")
+                          else "") + k: v for k, v in state_dict.items()}
+
         n_classes_weak_in_sd = state_dict['weak_head.bias'].shape[0] if 'weak_head.bias' in state_dict else -1
         n_classes_strong_in_sd = state_dict['strong_head.bias'].shape[0] if 'strong_head.bias' in state_dict else -1
         keys_to_remove = []

@@ -7,6 +7,7 @@ from helpers.decode import batched_decode_preds
 from helpers.encode import ManyHotEncoder
 from models.atstframe.ATSTF_wrapper import ATSTWrapper
 from models.beats.BEATs_wrapper import BEATsWrapper
+from models.frame_passt.fpasst_wrapper import FPaSSTWrapper
 from models.prediction_wrapper import PredictionsWrapper
 
 
@@ -23,6 +24,9 @@ def sound_event_detection(args):
     elif model_name == "ATST-F":
         atst = ATSTWrapper()
         model = PredictionsWrapper(atst, checkpoint="ATST-F_strong_1")
+    elif model_name == "fpasst":
+        fpasst = FPaSSTWrapper()
+        model = PredictionsWrapper(fpasst, checkpoint="fpasst_strong_1")
     else:
         raise NotImplementedError(f"Model {model_name} not (yet) implemented")
 
