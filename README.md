@@ -5,7 +5,7 @@ In this repository, we publish pre-trained models and code for the ICASSP'25 sub
 In this paper, we propose a pre-training pipeline for audio spectrogram transformers for frame-level sound event detection tasks. On top of common pre-training steps, we add a meticulously designed training routine on AudioSet frame-level annotations. For five transformers, we show that this additional pre-training step leads to substantial performance improvements on frame-level downstream tasks. We release all model checkpoints and hope that they will help researchers improve tasks that require high-quality frame-level representations. 
 
 The codebase is **under construction**; the next steps involve:
-* Upload all pre-trained checkpoints and model files [Done for BEATs and ATST-F]
+* Upload all pre-trained checkpoints and model files [Done for BEATs, ATST-F, and fPaSST]
 * Create a script that demonstrates how the pre-trained checkpoints can be loaded and used for inference [Done for BEATs and ATST-F]
 * Upload an arxiv version of the submitted paper
 * Add a table outlining the external checkpoints used in this work [DONE]
