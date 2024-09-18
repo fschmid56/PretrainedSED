@@ -1,6 +1,6 @@
 # Effective Pre-Training of Audio Transformers for Sound Event Detection
 
-In this repository, we publish pre-trained models and code for the ICASSP'25 submission: **Effective Pre-Training of Audio Transformers for Sound Event Detection**.
+In this repository, we publish pre-trained models and code for the ICASSP'25 submission: [**Effective Pre-Training of Audio Transformers for Sound Event Detection**](https://arxiv.org/abs/2409.09546).
 
 In this paper, we propose a pre-training pipeline for audio spectrogram transformers for frame-level sound event detection tasks. On top of common pre-training steps, we add a meticulously designed training routine on AudioSet frame-level annotations. For five transformers, we show that this additional pre-training step leads to substantial performance improvements on frame-level downstream tasks. We release all model checkpoints and hope that they will help researchers improve tasks that require high-quality frame-level representations. 
 
