@@ -942,7 +942,6 @@ def get_model(arch="passt_s_kd_p16_128_ap486", pretrained=True, n_classes=527, i
                        img_size=input_size, frame_patchout=frame_patchout, pos_embed_length=pos_embed_length)
     model = fix_embedding_layer(model)
     model = lighten_model(model)
-    print(model)
     return model
 
 

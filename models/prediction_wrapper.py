@@ -1,4 +1,5 @@
 import os
+
 import torch
 import torch.nn as nn
 from torch.hub import download_url_to_file
@@ -93,10 +94,20 @@ class PredictionsWrapper(nn.Module):
         if not os.path.exists(ckpt_file):
             download_url_to_file(CHECKPOINT_URLS[checkpoint], ckpt_file)
         state_dict = torch.load(ckpt_file, map_location="cpu", weights_only=True)
-        # compatibility
+
+        # compatibility with uniform wrapper structure we introduced for the public repo
         if 'fpasst' in checkpoint:
-            state_dict = {("model." if not k.startswith("model.model.") and k.startswith("model.")
-                          else "") + k: v for k, v in state_dict.items()}
+            state_dict = {("model.fpasst." + k[len("model."):] if k.startswith("model.")
+                           else k): v for k, v in state_dict.items()}
+        elif 'M2D' in checkpoint:
+            state_dict = {("model.m2d." + k[len("model."):] if not k.startswith("model.m2d.") and k.startswith("model.")
+                           else k): v for k, v in state_dict.items()}
+        elif 'BEATs' in checkpoint:
+            state_dict = {("model.beats." + k[len("model.model."):] if k.startswith("model.model")
+                           else k): v for k, v in state_dict.items()}
+        elif 'ASIT' in checkpoint:
+            state_dict = {("model.asit." + k[len("model."):] if k.startswith("model.")
+                           else k): v for k, v in state_dict.items()}
 
         n_classes_weak_in_sd = state_dict['weak_head.bias'].shape[0] if 'weak_head.bias' in state_dict else -1
         n_classes_strong_in_sd = state_dict['strong_head.bias'].shape[0] if 'strong_head.bias' in state_dict else -1

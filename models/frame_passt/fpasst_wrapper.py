@@ -23,7 +23,7 @@ class FPaSSTWrapper(BaseModelWrapper):
             fast_norm=True,
             preamp=True,
         )
-        self.model = get_model(
+        self.fpasst = get_model(
             arch="passt_deit_bd_p16_384",
             n_classes=527,
             pos_embed_length=250,
@@ -35,11 +35,11 @@ class FPaSSTWrapper(BaseModelWrapper):
         return self.mel(x)
 
     def forward(self, x):
-        return self.model(x)
+        return self.fpasst(x)
 
     def separate_params(self):
         pt_params = [[], [], [], [], [], [], [], [], [], [], [], []]
-        for k, p in self.model.named_parameters():
+        for k, p in self.fpasst.named_parameters():
             if k in ['cls_token',
                      'dist_token',
                      'new_pos_embed',

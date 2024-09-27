@@ -8,6 +8,8 @@ from helpers.encode import ManyHotEncoder
 from models.atstframe.ATSTF_wrapper import ATSTWrapper
 from models.beats.BEATs_wrapper import BEATsWrapper
 from models.frame_passt.fpasst_wrapper import FPaSSTWrapper
+from models.m2d.M2D_wrapper import M2DWrapper
+from models.asit.ASIT_wrapper import ASiTWrapper
 from models.prediction_wrapper import PredictionsWrapper
 
 
@@ -27,6 +29,12 @@ def sound_event_detection(args):
     elif model_name == "fpasst":
         fpasst = FPaSSTWrapper()
         model = PredictionsWrapper(fpasst, checkpoint="fpasst_strong_1")
+    elif model_name == "M2D":
+        m2d = M2DWrapper()
+        model = PredictionsWrapper(m2d, checkpoint="M2D_strong_1", embed_dim=m2d.m2d.cfg.feature_d)
+    elif model_name == "ASIT":
+        asit = ASiTWrapper()
+        model = PredictionsWrapper(asit, checkpoint="ASIT_strong_1")
     else:
         raise NotImplementedError(f"Model {model_name} not (yet) implemented")
 

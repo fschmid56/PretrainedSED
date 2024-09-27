@@ -8,17 +8,17 @@ class BEATsWrapper(BaseModelWrapper):
     def __init__(self):
         super().__init__()
         cfg = BEATsConfig()
-        self.model = BEATs(cfg)
+        self.beats = BEATs(cfg)
 
     def mel_forward(self, x):
         with torch.autocast(device_type="cuda", enabled=False):
-            mel = self.model.preprocess(x)
+            mel = self.beats.preprocess(x)
         mel = mel.unsqueeze(1).transpose(2, 3)
         return mel
 
     def forward(self, x):
         x = x.transpose(2, 3)
-        features = self.model.extract_features(x, do_preprocess=False)[0]
+        features = self.beats.extract_features(x, do_preprocess=False)[0]
         return features
 
     def separate_params(self):
