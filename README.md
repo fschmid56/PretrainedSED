@@ -122,7 +122,7 @@ This section presents the main results reported [in the paper](https://arxiv.org
 
 ### Teacher Model Performances with different Sequence Models (*not in paper*)
 
-* The idea of using an additional sequence model on top of the AudioSet weak pre-trained transformers is based on our belief that it is beneficial to give the model additional capacity for making temporally-strong predictions.
+* The use of an additional sequence model on top of the AudioSet Weak pre-trained transformers stems from our hypothesis that adding capacity specifically for temporally-strong predictions can enhance performance.
 * The table below shows teacher model performances for various sequence models added on top of the transformers before training on AudioSet Strong. The paper uses BiGRUs (RNN) as they deliver the best performance.
 * We investigated 4 different sequence models:
   * RNN: BiGRUs
