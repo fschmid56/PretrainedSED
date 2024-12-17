@@ -1,0 +1,7 @@
+Cython
+av>=10.0.0
+h5py>=3.8.0
+jsonpickle>=3.0.1
+hf_transfer>=0.1.4
+hf-fastup>=0.0.5
+datasets>=2.15.0

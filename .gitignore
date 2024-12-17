@@ -1,8 +1,4 @@
 # ignore until cleaned
-data_util/audioset.py
-data_util/audioset_strong.py
-data_util/transforms.py
-data_util/utils.py
 evaluate.py
 
 # Created by .ignore support plugin (hsz.mobi)

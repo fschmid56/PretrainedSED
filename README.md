@@ -76,6 +76,13 @@ The following is a list of checkpoints that we have created and worked with in o
 | M2D        | Strong       | M2D_strong_1.pt    | ours                                                                                                                      | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
 
 
+## AudioSet Strong pre-training
+
+```
+CFLAGS='-O3 -march=native' pip install https://github.com/f0k/minimp3py/archive/master.zip
+```
+
+
 ## Results & Ablation Studies
 
 This section presents the main results reported [in the paper](https://arxiv.org/pdf/2409.09546), along with additional ablation studies, including teacher model performances, comparisons of different sequence models, and evaluations using the DESED baseline system setup. The additional ablation studies have been requested by ICASSP`25 reviewers.
