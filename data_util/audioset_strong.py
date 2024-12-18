@@ -16,7 +16,8 @@ from data_util.transforms import (
     Mp3DecodeTransform,
     SequentialTransform,
     AddPseudoLabelsTransform,
-    strong_label_transform
+    strong_label_transform,
+    target_transform
 )
 
 logger = datasets.logging.get_logger(__name__)
@@ -112,6 +113,7 @@ def get_training_dataset(
         decode_transform,
         merge_overlapping_events,
         encode_label_fun,
+        target_transform,
         add_pseudo_label_transform
     ]
 
@@ -153,6 +155,7 @@ def get_validation_dataset(
         decode_transform,
         merge_overlapping_events,
         encode_label_fun,
+        target_transform
     ]
     as_ds.set_transform(SequentialTransform(as_transforms))
     as_ds_eval = (
@@ -196,14 +199,14 @@ def get_full_dataset(label_encoder, audio_length=10.0, sample_rate=16000):
     return dataset
 
 
-def get_uniform_sample_weights(dataset, encoder):
+def get_uniform_sample_weights(dataset):
     """
     :return: float tensor of shape len(full_training_set) representing the weights of each sample.
     """
     return torch.ones(len(dataset)).float()
 
 
-def get_temporal_count_balanced_sample_weights(dataset, encoder, sample_weight_offset=100,
+def get_temporal_count_balanced_sample_weights(dataset, sample_weight_offset=100,
                                                save_folder="/share/rk8/shared/as_strong"):
     """
     :return: float tensor of shape len(full_training_set) representing the weights of each sample.

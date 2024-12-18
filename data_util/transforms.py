@@ -13,6 +13,12 @@ from data_util.audioset_classes import as_strong_train_classes
 logger = datasets.logging.get_logger(__name__)
 
 
+def target_transform(sample):
+    del sample["labels"]
+    del sample["label_ids"]
+    return sample
+
+
 def strong_label_transform(sample, strong_label_encoder=None):
     assert strong_label_encoder is not None
     events = pd.DataFrame(sample['events'][0])
