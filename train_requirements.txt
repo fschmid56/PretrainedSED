@@ -8,3 +8,4 @@ datasets>=2.15.0
 pytorch-lightning>=2.0.0
 wandb
 transformers
+sed_scores_eval==0.0.3

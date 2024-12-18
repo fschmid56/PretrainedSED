@@ -3,12 +3,13 @@ import os
 import torch
 from torch.utils.data import DataLoader
 import argparse
-from sklearn import metrics
 import torch.nn as nn
-import torch.nn.functional as F
 import wandb
 import transformers
 import random
+import pytorch_lightning as pl
+from pytorch_lightning.loggers import WandbLogger
+import sed_scores_eval
 
 from helpers.decode import batched_decode_preds
 from helpers.encode import ManyHotEncoder
@@ -19,16 +20,11 @@ from models.m2d.M2D_wrapper import M2DWrapper
 from models.asit.ASIT_wrapper import ASiTWrapper
 from models.prediction_wrapper import PredictionsWrapper
 from helpers.augment import frame_shift, time_mask, mixup, filter_augmentation, mixstyle, RandomResizeCrop
-
-import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import LearningRateMonitor
 from helpers.utils import worker_init_fn
-
 from data_util.audioset_strong import get_training_dataset, get_validation_dataset
 from data_util.audioset_strong import get_temporal_count_balanced_sample_weights, get_uniform_sample_weights, \
     get_weighted_sampler
-from data_util import audioset_classes
+from data_util.audioset_classes import as_strong_train_classes, as_strong_eval_classes
 
 
 class PLModule(pl.LightningModule):
@@ -75,8 +71,10 @@ class PLModule(pl.LightningModule):
 
         self.freq_warp = RandomResizeCrop((1, 1.0), time_scale=(1.0, 1.0))
 
-        self.training_step_outputs = []
-        self.validation_step_outputs = []
+        self.val_predictions_strong = {}
+        self.val_ground_truth = {}
+        self.val_duration = {}
+        self.val_loss = []
 
     def forward(self, batch):
         x = batch["audio"]
@@ -246,39 +244,92 @@ class PLModule(pl.LightningModule):
         return loss
 
     def validation_step(self, val_batch, batch_idx):
-        x, _, y = val_batch
-        x = self.mel_forward(x)
-        y_hat, _ = self.model(x)
-        loss = F.binary_cross_entropy_with_logits(y_hat, y)
-        preds = torch.sigmoid(y_hat)
-        results = {'val_loss': loss, "preds": preds, "targets": y}
-        results = {k: v.cpu() for k, v in results.items()}
-        self.validation_step_outputs.append(results)
+        for f, gt_string in zip(val_batch["filename"], val_batch["gt_string"]):
+            if f in self.val_ground_truth:
+                continue
+            else:
+                events = [e.split(";;") for e in gt_string.split("++")]
+                self.val_ground_truth[f.split(".")[0]] = [(float(e[0]), float(e[1]), e[2]) for e in events]
+                self.val_duration[f.split(".")[0]] = (
+                            val_batch["audio"].shape[1] / val_batch["sampling_rate"][0]).item()
+
+        y_hat_strong = self(val_batch)
+        y_strong = val_batch["strong"]
+
+        loss = self.strong_loss(y_hat_strong, y_strong)
+        self.val_loss.append(loss.cpu())
+
+        scores_raw, scores_postprocessed, prediction_dfs = batched_decode_preds(
+            y_hat_strong.float(),
+            val_batch['filename'],
+            self.encoder,
+            median_filter=self.config.median_window
+        )
+
+        self.val_predictions_strong.update(
+            scores_postprocessed
+        )
 
     def on_validation_epoch_end(self):
-        loss = torch.stack([x['val_loss'] for x in self.validation_step_outputs])
-        preds = torch.cat([x['preds'] for x in self.validation_step_outputs], dim=0)
-        targets = torch.cat([x['targets'] for x in self.validation_step_outputs], dim=0)
+        gt_unique_events = set([e[2] for f, events in self.val_ground_truth.items() for e in events])
+        train_unique_events = set(self.encoder.labels)
+        class_intersection = gt_unique_events.intersection(train_unique_events)
 
-        all_preds = self.all_gather(preds).reshape(-1, preds.shape[-1]).cpu().float().numpy()
-        all_targets = self.all_gather(targets).reshape(-1, targets.shape[-1]).cpu().float().numpy()
-        all_loss = self.all_gather(loss).reshape(-1, )
+        assert len(class_intersection) == len(set(as_strong_train_classes).intersection(as_strong_eval_classes)) == 407, \
+            f"Intersection unique events. Expected: {len(set(as_strong_train_classes).intersection(as_strong_eval_classes))}," \
+            f" Actual: {len(class_intersection)}"
 
-        try:
-            average_precision = metrics.average_precision_score(
-                all_targets, all_preds, average=None)
-        except ValueError:
-            average_precision = np.array([np.nan] * 527)
-        try:
-            roc = metrics.roc_auc_score(all_targets, all_preds, average=None)
-        except ValueError:
-            roc = np.array([np.nan] * 527)
-        logs = {'val/loss': torch.as_tensor(all_loss).mean().cuda(),
-                'val/ap': torch.as_tensor(average_precision).mean().cuda(),
-                'val/roc': torch.as_tensor(roc).mean().cuda()
+        # filter ground truth according to class_intersection
+        val_ground_truth = {fid: [event for event in self.val_ground_truth[fid] if event[2] in class_intersection]
+                            for fid in self.val_ground_truth}
+        # drop audios without events
+        val_ground_truth = {fid: events for fid, events in val_ground_truth.items() if len(events) > 0}
+        # keep only corresponding audio durations
+        audio_durations = {
+            fid: self.val_duration[fid] for fid in val_ground_truth.keys()
+        }
+
+        # filter files in predictions
+        as_strong_preds = {
+            fid: self.val_predictions_strong[fid] for fid in val_ground_truth.keys()
+        }
+        # filter classes in predictions
+        unused_classes = list(set(self.encoder.labels).difference(class_intersection))
+        for f, df in as_strong_preds.items():
+            df.drop(columns=list(unused_classes), axis=1, inplace=True)
+
+        segment_based_pauroc = sed_scores_eval.segment_based.auroc(
+            as_strong_preds,
+            val_ground_truth,
+            audio_durations,
+            max_fpr=0.1,
+            segment_length=1.0,
+            num_jobs=1
+        )
+
+        psds1 = sed_scores_eval.intersection_based.psds(
+            as_strong_preds,
+            val_ground_truth,
+            audio_durations,
+            dtc_threshold=0.7,
+            gtc_threshold=0.7,
+            cttc_threshold=None,
+            alpha_ct=0,
+            alpha_st=1,
+            num_jobs=1
+        )
+
+        logs = {"val/loss": torch.as_tensor(self.val_loss).mean().cuda(),
+                "val/psds1": psds1[0],
+                "val/psds1_macro_averaged": np.array([v for k, v in psds1[1].items()]).mean(),
+                "val/pauroc": segment_based_pauroc[0]['mean'],
                 }
+
         self.log_dict(logs, sync_dist=False)
-        self.validation_step_outputs.clear()
+        self.val_predictions_strong = {}
+        self.val_ground_truth = {}
+        self.val_duration = {}
+        self.val_loss = []
 
 
 def train(config):
@@ -294,7 +345,7 @@ def train(config):
     )
 
     # encoder manages encoding and decoding of model predictions
-    encoder = ManyHotEncoder(audioset_classes.as_strong_train_classes)
+    encoder = ManyHotEncoder(as_strong_train_classes)
 
     train_set = get_training_dataset(encoder, wavmix_p=config.wavmix_p)  # TODO: pseudo label location
     eval_set = get_validation_dataset(encoder)
@@ -304,7 +355,7 @@ def train(config):
     else:
         sample_weights = get_uniform_sample_weights(train_set)
 
-    train_sampler = get_weighted_sampler(sample_weights)
+    train_sampler = get_weighted_sampler(sample_weights, epoch_len=config.epoch_len)
 
     # train dataloader
     train_dl = DataLoader(dataset=train_set,
@@ -338,6 +389,32 @@ def train(config):
     wandb.finish()
 
 
+def evaluate(config):
+    # encoder manages encoding and decoding of model predictions
+    encoder = ManyHotEncoder(as_strong_train_classes)
+    eval_set = get_validation_dataset(encoder)
+
+    # eval dataloader
+    eval_dl = DataLoader(dataset=eval_set,
+                         worker_init_fn=worker_init_fn,
+                         num_workers=config.num_workers,
+                         batch_size=config.batch_size)
+
+    # create pytorch lightening module
+    pl_module = PLModule(config, encoder)
+
+    # create the pytorch lightening trainer by specifying the number of epochs to train, the logger,
+    # on which kind of device(s) to train and possible callbacks
+    trainer = pl.Trainer(max_epochs=config.n_epochs,
+                         accelerator='auto',
+                         devices=config.num_devices,
+                         precision=config.precision,
+                         num_sanity_val_steps=0)
+
+    # start training and validation for the specified number of epochs
+    trainer.validate(pl_module, eval_dl)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parser. ')
 
@@ -348,6 +425,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_devices', type=int, default=1)
     parser.add_argument('--cuda', action='store_true', default=False)
     parser.add_argument('--precision', type=int, default=16)
+    parser.add_argument('--evaluate', action='store_true', default=False)
 
     # model
     parser.add_argument('--model_name', type=str, default="ATST-F")  # used also for training
@@ -362,6 +440,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_balanced_sampler', action='store_true', default=False)
     parser.add_argument('--distillation_loss_weight', type=float, default=0.9)
     parser.add_argument('--epoch_len', type=int, default=100000)
+    parser.add_argument('--median_window', type=int, default=12)
 
     # augmentation
     parser.add_argument('--wavmix_p', type=float, default=0.8)
@@ -387,4 +466,7 @@ if __name__ == '__main__':
                         default=os.path.join("resources", "pseudo_labels.hdf5"))
 
     args = parser.parse_args()
-    train(args)
+    if args.evaluate:
+        evaluate(args)
+    else:
+        train(args)
