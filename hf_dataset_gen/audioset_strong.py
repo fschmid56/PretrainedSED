@@ -15,7 +15,6 @@ _HOMEPAGE = "https://research.google.com/audioset/download_strong.html"
 
 _LICENSE = "https://creativecommons.org/licenses/by/4.0/"
 
-
 label_map_strong_csv = os.path.join("metadata", "class_labels_indices_strong.csv")
 label_map_csv = os.path.join("metadata", "class_labels_indices.csv")
 
@@ -153,7 +152,7 @@ class AudiosetStrong(datasets.GeneratorBasedBuilder):
                     "events": event_list
                 }
 
-                # load mp3bytes file
+                # load mp3 bytes file
                 audio = mp3s[name_to_idx[yid]].tobytes()
 
                 data_row = {**data_row, "mp3_bytes": audio}

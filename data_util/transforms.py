@@ -26,6 +26,7 @@ def strong_label_transform(sample, strong_label_encoder=None):
     strong = strong_label_encoder.encode_strong_df(events).T
     sample["strong"] = [strong]
     sample["event_count"] = [strong.sum(1)]
+    # encode ground truth events as string - we will use this for evaluation
     sample["gt_string"] = ["++".join([";;".join([str(e[0]), str(e[1]), e[2]]) for e in
                                       zip(sample['events'][0]['onset'], sample['events'][0]['offset'],
                                           sample['events'][0]['event_label'])])]
@@ -34,9 +35,8 @@ def strong_label_transform(sample, strong_label_encoder=None):
 
 
 class AddPseudoLabelsTransform:
-    def __init__(self, pseudo_labels_folder="/share/hel/datasets/as_strong/predictions",
-                 pseudo_labels_name="final"):
-        self.pseudo_labels_file = os.path.join(pseudo_labels_folder, pseudo_labels_name, "as_strong.hdf5")
+    def __init__(self, pseudo_labels_folder):
+        self.pseudo_labels_file = os.path.join(pseudo_labels_folder, "as_strong.hdf5")
 
         if self.pseudo_labels_file is not None:
             # fetch dict of positions for each example

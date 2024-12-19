@@ -78,10 +78,62 @@ The following is a list of checkpoints that we have created and worked with in o
 
 ## AudioSet Strong pre-training
 
+### Environment
+
+Activate conda environment:
+
+```
+conda activate ptsed
+```
+
+Install additional requirements for training:
+
 ```
 CFLAGS='-O3 -march=native' pip install https://github.com/f0k/minimp3py/archive/master.zip
 ```
 
+```
+pip install -r train_requirements.txt
+```
+
+### Prepare Dataset
+
+1. Follow the steps described [here](https://github.com/kkoutini/PaSST/tree/main/audioset#experiments-on-audioset) to obtain AudioSet, encoded as mp3 files and packed into HDF5 format.
+2. We use the [Huggingface datasets](https://huggingface.co/docs/datasets/index) API for fast and memory-efficient loading of the dataset. The [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) file takes the dataset from Step 1 and converts it into a Huggingface dataset.
+2.a. Adapt the paths in [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) marked as TODOs.
+2.b. Create the Hunggingface dataset:
+```
+cd hf_dataset_gen
+python audioset_strong.py
+```
+
+**Note:** The path to the dataset is specified via an environment variable. When you access the dataset for training or evaluation,
+set the environment variable. For example, in our case this is done via the command:
+
+```
+export HF_DATASETS_CACHE=/share/hel/datasets/HF_datasets/cache/
+```
+
+### Download ensemble pseudo labels
+
+The size of a pseudo label file is around 50 GB, resulting from a pseudo label matrix (250 timesteps x 447 class predictions) stored for each
+file in the dataset (~100k recordings). We are currently figuring out how to best share these. Stay tuned!
+
+### Run AudioSet Strong training
+
+Example: Train ATST-F, pretrained on AudioSet weak, with an RNN on top, use the balanced sampler and set wavmix augmentation to probability of 1.0.
+
+```
+python ex_audioset.py --model_name=ATST-F --seq_model_type=rnn --use_balanced_sampler --pretrained=weak --wavmix_p=1.0 
+```
+
+### Run AudioSet Strong evaluation
+
+Evaluate the AudioSet Strong pre-trained checkpoint of ATST-F:
+
+```
+python ex_audioset.py --model_name=ATST-F --pretrained=strong 
+```
 
 ## Results & Ablation Studies
 

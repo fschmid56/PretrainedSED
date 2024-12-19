@@ -21,7 +21,7 @@ from models.asit.ASIT_wrapper import ASiTWrapper
 from models.prediction_wrapper import PredictionsWrapper
 from helpers.augment import frame_shift, time_mask, mixup, filter_augmentation, mixstyle, RandomResizeCrop
 from helpers.utils import worker_init_fn
-from data_util.audioset_strong import get_training_dataset, get_validation_dataset
+from data_util.audioset_strong import get_training_dataset, get_eval_dataset
 from data_util.audioset_strong import get_temporal_count_balanced_sample_weights, get_uniform_sample_weights, \
     get_weighted_sampler
 from data_util.audioset_classes import as_strong_train_classes, as_strong_eval_classes
@@ -47,19 +47,24 @@ class PLModule(pl.LightningModule):
         # load transformer model
         if config.model_name == "BEATs":
             beats = BEATsWrapper()
-            model = PredictionsWrapper(beats, checkpoint=f"BEATs_{checkpoint}" if checkpoint else None)
+            model = PredictionsWrapper(beats, checkpoint=f"BEATs_{checkpoint}" if checkpoint else None,
+                                       seq_model_type=config.seq_model_type)
         elif config.model_name == "ATST-F":
             atst = ATSTWrapper()
-            model = PredictionsWrapper(atst, checkpoint=f"ATST-F_{checkpoint}" if checkpoint else None)
+            model = PredictionsWrapper(atst, checkpoint=f"ATST-F_{checkpoint}" if checkpoint else None,
+                                       seq_model_type=config.seq_model_type)
         elif config.model_name == "fpasst":
             fpasst = FPaSSTWrapper()
-            model = PredictionsWrapper(fpasst, checkpoint=f"fpasst_{checkpoint}" if checkpoint else None)
+            model = PredictionsWrapper(fpasst, checkpoint=f"fpasst_{checkpoint}" if checkpoint else None,
+                                       seq_model_type=config.seq_model_type)
         elif config.model_name == "M2D":
             m2d = M2DWrapper()
-            model = PredictionsWrapper(m2d, checkpoint=f"M2D_{checkpoint}" if checkpoint else None)
+            model = PredictionsWrapper(m2d, checkpoint=f"M2D_{checkpoint}" if checkpoint else None,
+                                       seq_model_type=config.seq_model_type)
         elif config.model_name == "ASIT":
             asit = ASiTWrapper()
-            model = PredictionsWrapper(asit, checkpoint=f"ASIT_{checkpoint}" if checkpoint else None)
+            model = PredictionsWrapper(asit, checkpoint=f"ASIT_{checkpoint}" if checkpoint else None,
+                                       seq_model_type=config.seq_model_type)
         else:
             raise NotImplementedError(f"Model {config.model_name} not (yet) implemented")
 
@@ -170,7 +175,12 @@ class PLModule(pl.LightningModule):
 
         x = train_batch["audio"]
         labels = train_batch['strong']
-        pseudo_labels = train_batch['pseudo_strong']
+        if 'pseudo_strong' in train_batch:
+            pseudo_labels = train_batch['pseudo_strong']
+        else:
+            # create dummy pseudo labels
+            pseudo_labels = torch.zeros_like(labels)
+            assert self.config.distillation_loss_weight == 0
 
         mel = self.model.mel_forward(x)
 
@@ -244,14 +254,13 @@ class PLModule(pl.LightningModule):
         return loss
 
     def validation_step(self, val_batch, batch_idx):
+        # bring ground truth into shape needed for evaluation
         for f, gt_string in zip(val_batch["filename"], val_batch["gt_string"]):
-            if f in self.val_ground_truth:
-                continue
-            else:
-                events = [e.split(";;") for e in gt_string.split("++")]
-                self.val_ground_truth[f.split(".")[0]] = [(float(e[0]), float(e[1]), e[2]) for e in events]
-                self.val_duration[f.split(".")[0]] = (
-                            val_batch["audio"].shape[1] / val_batch["sampling_rate"][0]).item()
+            f = f[:-len(".mp3")]
+            events = [e.split(";;") for e in gt_string.split("++")]
+            self.val_ground_truth[f] = [(float(e[0]), float(e[1]), e[2]) for e in events]
+            self.val_duration[f] = (
+                        val_batch["audio"].shape[1] / val_batch["sampling_rate"][0]).item()
 
         y_hat_strong = self(val_batch)
         y_strong = val_batch["strong"]
@@ -273,6 +282,7 @@ class PLModule(pl.LightningModule):
     def on_validation_epoch_end(self):
         gt_unique_events = set([e[2] for f, events in self.val_ground_truth.items() for e in events])
         train_unique_events = set(self.encoder.labels)
+        # evaluate on all classes that are in both train and test sets (407 classes)
         class_intersection = gt_unique_events.intersection(train_unique_events)
 
         assert len(class_intersection) == len(set(as_strong_train_classes).intersection(as_strong_eval_classes)) == 407, \
@@ -282,7 +292,7 @@ class PLModule(pl.LightningModule):
         # filter ground truth according to class_intersection
         val_ground_truth = {fid: [event for event in self.val_ground_truth[fid] if event[2] in class_intersection]
                             for fid in self.val_ground_truth}
-        # drop audios without events
+        # drop audios without events - aligned with DESED evaluation procedure
         val_ground_truth = {fid: events for fid, events in val_ground_truth.items() if len(events) > 0}
         # keep only corresponding audio durations
         audio_durations = {
@@ -319,6 +329,8 @@ class PLModule(pl.LightningModule):
             num_jobs=1
         )
 
+        # "val/psds1_macro_averaged" is psds1 without penalization for performance
+        #  variations across classes
         logs = {"val/loss": torch.as_tensor(self.val_loss).mean().cuda(),
                 "val/psds1": psds1[0],
                 "val/psds1_macro_averaged": np.array([v for k, v in psds1[1].items()]).mean(),
@@ -347,8 +359,9 @@ def train(config):
     # encoder manages encoding and decoding of model predictions
     encoder = ManyHotEncoder(as_strong_train_classes)
 
-    train_set = get_training_dataset(encoder, wavmix_p=config.wavmix_p)  # TODO: pseudo label location
-    eval_set = get_validation_dataset(encoder)
+    train_set = get_training_dataset(encoder, wavmix_p=config.wavmix_p,
+                                     pseudo_labels_folder=config.pseudo_label_folder)
+    eval_set = get_eval_dataset(encoder)
 
     if config.use_balanced_sampler:
         sample_weights = get_temporal_count_balanced_sample_weights(train_set, save_folder="resources")
@@ -390,9 +403,10 @@ def train(config):
 
 
 def evaluate(config):
+    # only evaluation of pre-trained models
     # encoder manages encoding and decoding of model predictions
     encoder = ManyHotEncoder(as_strong_train_classes)
-    eval_set = get_validation_dataset(encoder)
+    eval_set = get_eval_dataset(encoder)
 
     # eval dataloader
     eval_dl = DataLoader(dataset=eval_set,
@@ -411,7 +425,7 @@ def evaluate(config):
                          precision=config.precision,
                          num_sanity_val_steps=0)
 
-    # start training and validation for the specified number of epochs
+    # start evaluation
     trainer.validate(pl_module, eval_dl)
 
 
@@ -423,7 +437,6 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--num_workers', type=int, default=16)
     parser.add_argument('--num_devices', type=int, default=1)
-    parser.add_argument('--cuda', action='store_true', default=False)
     parser.add_argument('--precision', type=int, default=16)
     parser.add_argument('--evaluate', action='store_true', default=False)
 
@@ -433,12 +446,15 @@ if __name__ == '__main__':
     # "ssl" = SSL pre-trained
     # "weak" = AudioSet Weak pre-trained
     # "strong" = AudioSet Strong pre-trained
-    parser.add_argument('--pretrained', type=str, default="weak")
+    parser.add_argument('--pretrained', type=str, choices=["scratch", "ssl", "weak", "strong"],
+                        default="weak")
+    parser.add_argument('--seq_model_type', type=str, choices=["rnn"],
+                        default=None)
 
     # training
-    parser.add_argument('--n_epochs', type=int, default=120)
+    parser.add_argument('--n_epochs', type=int, default=30)
     parser.add_argument('--use_balanced_sampler', action='store_true', default=False)
-    parser.add_argument('--distillation_loss_weight', type=float, default=0.9)
+    parser.add_argument('--distillation_loss_weight', type=float, default=0.0)
     parser.add_argument('--epoch_len', type=int, default=100000)
     parser.add_argument('--median_window', type=int, default=12)
 
@@ -457,13 +473,13 @@ if __name__ == '__main__':
 
     # lr schedule
     parser.add_argument('--schedule_mode', type=str, default="cos")
-    parser.add_argument('--max_lr', type=float, default=0.003)
+    parser.add_argument('--max_lr', type=float, default=7e-5)
     parser.add_argument('--lr_end', type=float, default=2e-7)
     parser.add_argument('--warmup_steps', type=int, default=5000)
 
     # knowledge distillation
-    parser.add_argument('--pseudo_label_file', type=str,
-                        default=os.path.join("resources", "pseudo_labels.hdf5"))
+    parser.add_argument('--pseudo_label_folder', type=str,
+                        default=None)
 
     args = parser.parse_args()
     if args.evaluate:

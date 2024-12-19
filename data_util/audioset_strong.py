@@ -10,7 +10,6 @@ from torch.utils.data import (
     WeightedRandomSampler,
 )
 
-from data_util.audioset import DistributedSamplerWrapper
 from data_util.audioset_classes import as_strong_train_classes
 from data_util.transforms import (
     Mp3DecodeTransform,
@@ -84,8 +83,7 @@ def get_training_dataset(
         audio_length=10.0,
         sample_rate=16000,
         wavmix_p=0.0,
-        pseudo_labels_folder="/share/hel/datasets/as_strong/predictions",
-        pseudo_labels_name="final"
+        pseudo_labels_folder=None,
 ):
     init_hf_config()
 
@@ -96,7 +94,7 @@ def get_training_dataset(
     ds_list = []
 
     with catchtime("Loading audioset_strong"):
-        as_ds = datasets.load_from_disk(get_hf_local_path("audioset_strong"))
+        as_ds = datasets.load_from_disk(get_hf_local_path("audioset_strong_official"))
 
     # label encode transformation
     if label_encoder is not None:
@@ -106,16 +104,15 @@ def get_training_dataset(
     else:
         encode_label_fun = lambda x: x
 
-    add_pseudo_label_transform = AddPseudoLabelsTransform(pseudo_labels_folder=pseudo_labels_folder,
-                                                          pseudo_labels_name=pseudo_labels_name).add_pseudo_label_transform
-
     as_transforms = [
         decode_transform,
         merge_overlapping_events,
         encode_label_fun,
         target_transform,
-        add_pseudo_label_transform
     ]
+
+    if pseudo_labels_folder:
+        as_transforms.append(AddPseudoLabelsTransform(pseudo_labels_folder=pseudo_labels_folder).add_pseudo_label_transform)
 
     as_ds.set_transform(SequentialTransform(as_transforms))
 
@@ -129,7 +126,7 @@ def get_training_dataset(
     return dataset
 
 
-def get_validation_dataset(
+def get_eval_dataset(
         label_encoder,
         audio_length=10.0,
         sample_rate=16000
@@ -322,7 +319,7 @@ if __name__ == "__main__":
         encoder, audio_length=10.0, sample_rate=16_000
     )
 
-    valid_ds = get_validation_dataset(
+    valid_ds = get_eval_dataset(
         encoder, audio_length=10.0, sample_rate=16_000
     )
 
