@@ -83,7 +83,7 @@ def get_training_dataset(
         audio_length=10.0,
         sample_rate=16000,
         wavmix_p=0.0,
-        pseudo_labels_folder=None,
+        pseudo_labels_file=None,
 ):
     init_hf_config()
 
@@ -111,8 +111,8 @@ def get_training_dataset(
         target_transform,
     ]
 
-    if pseudo_labels_folder:
-        as_transforms.append(AddPseudoLabelsTransform(pseudo_labels_folder=pseudo_labels_folder).add_pseudo_label_transform)
+    if pseudo_labels_file:
+        as_transforms.append(AddPseudoLabelsTransform(pseudo_labels_file=pseudo_labels_file).add_pseudo_label_transform)
 
     as_ds.set_transform(SequentialTransform(as_transforms))
 
@@ -203,7 +203,7 @@ def get_uniform_sample_weights(dataset):
     return torch.ones(len(dataset)).float()
 
 
-def get_temporal_count_balanced_sample_weights(dataset, sample_weight_offset=100,
+def get_temporal_count_balanced_sample_weights(dataset, sample_weight_offset=30,
                                                save_folder="/share/rk8/shared/as_strong"):
     """
     :return: float tensor of shape len(full_training_set) representing the weights of each sample.
@@ -251,7 +251,8 @@ class MixupDataset(TorchDataset):
             batch2 = self.dataset[idx2]
             x1, x2 = batch1['audio'], batch2['audio']
             y1, y2 = batch1['strong'], batch2['strong']
-            p1, p2 = batch1['pseudo_strong'], batch2['pseudo_strong']
+            if 'pseudo_strong' in batch1:
+                p1, p2 = batch1['pseudo_strong'], batch2['pseudo_strong']
             l = np.random.beta(self.beta, self.beta)
             l = max(l, 1. - l)
             x1 = x1 - x1.mean()
@@ -260,7 +261,8 @@ class MixupDataset(TorchDataset):
             x = x - x.mean()
             batch1['audio'] = x
             batch1['strong'] = (y1 * l + y2 * (1. - l))
-            batch1['pseudo_strong'] = (p1 * l + p2 * (1. - l))
+            if 'pseudo_strong' in batch1:
+                batch1['pseudo_strong'] = (p1 * l + p2 * (1. - l))
             return batch1
         return self.dataset[index]
 

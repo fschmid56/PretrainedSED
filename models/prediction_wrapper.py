@@ -42,7 +42,7 @@ class PredictionsWrapper(nn.Module):
                  head_type="linear",
                  rnn_layers=2,
                  rnn_type="BiGRU",
-                 rnn_dim=256,
+                 rnn_dim=2048,
                  rnn_dropout=0.0
                  ):
         super(PredictionsWrapper, self).__init__()
@@ -111,6 +111,7 @@ class PredictionsWrapper(nn.Module):
 
         n_classes_weak_in_sd = state_dict['weak_head.bias'].shape[0] if 'weak_head.bias' in state_dict else -1
         n_classes_strong_in_sd = state_dict['strong_head.bias'].shape[0] if 'strong_head.bias' in state_dict else -1
+        seq_model_in_sd = any(['seq_model.' in key for key in state_dict.keys()])
         keys_to_remove = []
         strict = True
         expected_missing = 0
@@ -120,6 +121,15 @@ class PredictionsWrapper(nn.Module):
             keys_to_remove.append('weak_head.weight')
             keys_to_remove.append('strong_head.bias')
             keys_to_remove.append('strong_head.weight')
+        elif self.seq_model_type is not None and not seq_model_in_sd:
+            # we want to train a sequence model (e.g., rnn) on top of a
+            #   pre-trained transformer (e.g., AS weak pretrained)
+            keys_to_remove.append('weak_head.bias')
+            keys_to_remove.append('weak_head.weight')
+            keys_to_remove.append('strong_head.bias')
+            keys_to_remove.append('strong_head.weight')
+            num_seq_model_keys = len([key for key in self.seq_model.state_dict()])
+            expected_missing = len(keys_to_remove) + num_seq_model_keys
         else:
             # head type is not None
             if n_classes_weak_in_sd != self.n_classes_weak:

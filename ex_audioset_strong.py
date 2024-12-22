@@ -360,7 +360,7 @@ def train(config):
     encoder = ManyHotEncoder(as_strong_train_classes)
 
     train_set = get_training_dataset(encoder, wavmix_p=config.wavmix_p,
-                                     pseudo_labels_folder=config.pseudo_label_folder)
+                                     pseudo_labels_file=config.pseudo_labels_file)
     eval_set = get_eval_dataset(encoder)
 
     if config.use_balanced_sampler:
@@ -394,7 +394,9 @@ def train(config):
                          accelerator='auto',
                          devices=config.num_devices,
                          precision=config.precision,
-                         num_sanity_val_steps=0)
+                         num_sanity_val_steps=0,
+                         check_val_every_n_epoch=config.check_val_every_n_epoch
+                         )
 
     # start training and validation for the specified number of epochs
     trainer.fit(pl_module, train_dl, eval_dl)
@@ -423,7 +425,8 @@ def evaluate(config):
                          accelerator='auto',
                          devices=config.num_devices,
                          precision=config.precision,
-                         num_sanity_val_steps=0)
+                         num_sanity_val_steps=0,
+                         check_val_every_n_epoch=config.check_val_every_n_epoch)
 
     # start evaluation
     trainer.validate(pl_module, eval_dl)
@@ -439,6 +442,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_devices', type=int, default=1)
     parser.add_argument('--precision', type=int, default=16)
     parser.add_argument('--evaluate', action='store_true', default=False)
+    parser.add_argument('--check_val_every_n_epoch', type=int, default=5)
 
     # model
     parser.add_argument('--model_name', type=str, default="ATST-F")  # used also for training
@@ -478,7 +482,7 @@ if __name__ == '__main__':
     parser.add_argument('--warmup_steps', type=int, default=5000)
 
     # knowledge distillation
-    parser.add_argument('--pseudo_label_folder', type=str,
+    parser.add_argument('--pseudo_labels_file', type=str,
                         default=None)
 
     args = parser.parse_args()

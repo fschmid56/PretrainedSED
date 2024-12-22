@@ -35,8 +35,8 @@ def strong_label_transform(sample, strong_label_encoder=None):
 
 
 class AddPseudoLabelsTransform:
-    def __init__(self, pseudo_labels_folder):
-        self.pseudo_labels_file = os.path.join(pseudo_labels_folder, "as_strong.hdf5")
+    def __init__(self, pseudo_labels_file):
+        self.pseudo_labels_file = pseudo_labels_file
 
         if self.pseudo_labels_file is not None:
             # fetch dict of positions for each example
