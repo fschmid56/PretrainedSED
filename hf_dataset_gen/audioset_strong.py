@@ -18,14 +18,13 @@ _LICENSE = "https://creativecommons.org/licenses/by/4.0/"
 label_map_strong_csv = os.path.join("metadata", "class_labels_indices_strong.csv")
 label_map_csv = os.path.join("metadata", "class_labels_indices.csv")
 
-# TODO: set base path to the location where you store AudioSet
-base_path = "/share/hel/datasets/audioset"
+# TODO: set location where you store AudioSet hdf5 files
+audioset_hdf5_path = "/share/hel/datasets/audioset/hdf5s"
 
-# TODO: AudioSet Audio Data Files, in our case they are in mp3 format
 _AUDIO_FILES = {
-    "balanced_train": os.path.join(base_path, "hdf5s", "balanced_train_segments_mp3.hdf"),
-    "unbalanced_train": os.path.join(base_path, "hdf5s", "unbalanced_train_segments_mp3.hdf"),
-    "eval": os.path.join(base_path, "hdf5s", "eval_segments_mp3.hdf")
+    "balanced_train": os.path.join(audioset_hdf5_path, "balanced_train_segments_mp3.hdf"),
+    "unbalanced_train": os.path.join(audioset_hdf5_path, "unbalanced_train_segments_mp3.hdf"),
+    "eval": os.path.join(audioset_hdf5_path, "eval_segments_mp3.hdf")
 }
 
 _METADATA = {
@@ -90,7 +89,7 @@ class AudiosetStrong(datasets.GeneratorBasedBuilder):
                     "split": key,
                     "csv_path": split_csvs[key],
                     "hdf5_path": hdf5s[key],
-                    "audio_path": os.path.join(base_path, 'audio'),
+                    "audio_path": os.path.join(audioset_hdf5_path, 'audio'),
                     "label_map_csv": dl_manager.download(label_map_csv),
                     "label_map_strong_csv": dl_manager.download(label_map_strong_csv)
                 },

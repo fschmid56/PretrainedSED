@@ -1,6 +1,6 @@
 # Effective Pre-Training of Audio Transformers for Sound Event Detection
 
-In this repository, we publish pre-trained models and code for the ICASSP'25 submission: [**Effective Pre-Training of Audio Transformers for Sound Event Detection**](https://arxiv.org/abs/2409.09546).
+In this repository, we publish pre-trained models and code for the ICASSP'25 paper: [**Effective Pre-Training of Audio Transformers for Sound Event Detection**](https://arxiv.org/abs/2409.09546).
 
 In this paper, we propose a pre-training pipeline for audio spectrogram transformers for frame-level sound event detection tasks. On top of common pre-training steps, we add a meticulously designed training routine on AudioSet frame-level annotations. For five transformers, we show that this additional pre-training step leads to substantial performance improvements on frame-level downstream tasks. We release all model checkpoints and hope that they will help researchers improve tasks that require high-quality frame-level representations. 
 
@@ -9,10 +9,10 @@ The codebase is **under construction**; the next steps involve:
 * Create a script that demonstrates how the pre-trained checkpoints can be loaded and used for inference [DONE]
 * Upload an arxiv version of the submitted paper [DONE]
 * Add a table outlining the external checkpoints used in this work [DONE]
-* Evaluation routine on the AudioSet frame-level annotations
-* Upload the ensemble logits for the AudioSet Strong evaluation set
-* Include a clean version of the AudioSet Strong training routine
-* Include training routines on the downstream tasks
+* Evaluation routine on the AudioSet frame-level annotations [DONE]
+* Include a cleaned version of the AudioSet Strong training routine [DONE]
+* Upload the ensemble logits for the AudioSet Strong dataset
+* Demonstrate how the pre-trained transformer can be used for downstream tasks
 * Wrap this repository in an installable python package for easy use
 
 ## Setting up Environment
@@ -99,17 +99,27 @@ pip install -r train_requirements.txt
 ### Prepare Dataset
 
 1. Follow the steps described [here](https://github.com/kkoutini/PaSST/tree/main/audioset#experiments-on-audioset) to obtain AudioSet, encoded as mp3 files and packed into HDF5 format.
+
+You will up with a directory containing three HDF5 files:
+* balanced_train_segments_mp3.hdf
+* unbalanced_train_segments_mp3.hdf
+* eval_segments_mp3.hdf
+
 2. We use the [Huggingface datasets](https://huggingface.co/docs/datasets/index) API for fast and memory-efficient loading of the dataset. The [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) file takes the dataset from Step 1 and converts it into a Huggingface dataset.
 
-3. Adapt the paths in [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) marked as TODOs.
-4. Create the Hunggingface dataset:
+Adapt the paths in [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) marked as TODOs (2x: hdf5 path and target path for HF dataset).
+3. Create the Hunggingface dataset:
 ```
 cd hf_dataset_gen
 python audioset_strong.py
 ```
 
-**Note:** The path to the dataset is specified via an environment variable. When you access the dataset for training or evaluation,
-set the environment variable. For example, in our case this is done via the command:
+4. The path to the dataset is specified via an environment variable. When you access the dataset for training or evaluation,
+set the environment variable. For example, in our case, the Huggingface dataset path is set to:
+
+```/share/hel/datasets/HF_datasets/local/audioset_strong_official```
+
+And therefore we set the following environment variable:
 
 ```
 export HF_DATASETS_CACHE=/share/hel/datasets/HF_datasets/cache/
@@ -128,6 +138,9 @@ Example: Train ATST-F, pretrained on AudioSet weak, with an RNN on top, use the 
 python ex_audioset_strong.py --model_name=ATST-F --seq_model_type=rnn --use_balanced_sampler --pretrained=weak --wavmix_p=1.0 
 ```
 
+Check out the results: https://api.wandb.ai/links/cp_tobi/tphswm5k
+
+
 ### Run AudioSet Strong evaluation
 
 Evaluate the AudioSet Strong pre-trained checkpoint of ATST-F:
@@ -135,6 +148,8 @@ Evaluate the AudioSet Strong pre-trained checkpoint of ATST-F:
 ```
 python ex_audioset_strong.py --model_name=ATST-F --pretrained=strong 
 ```
+
+If everything is set up correctly, this should give a `val/psds1_macro_averaged` of around 46.1.
 
 ## Results & Ablation Studies
 
