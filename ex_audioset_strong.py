@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 import argparse
@@ -76,6 +76,8 @@ class PLModule(pl.LightningModule):
 
         self.freq_warp = RandomResizeCrop((1, 1.0), time_scale=(1.0, 1.0))
 
+        self.val_durations_df = pd.read_csv(f"resources/eval_durations.csv",
+                                            sep=",", header=None, names=["filename", "duration"])
         self.val_predictions_strong = {}
         self.val_ground_truth = {}
         self.val_duration = {}
@@ -259,8 +261,7 @@ class PLModule(pl.LightningModule):
             f = f[:-len(".mp3")]
             events = [e.split(";;") for e in gt_string.split("++")]
             self.val_ground_truth[f] = [(float(e[0]), float(e[1]), e[2]) for e in events]
-            self.val_duration[f] = (
-                        val_batch["audio"].shape[1] / val_batch["sampling_rate"][0]).item()
+            self.val_duration[f] = self.val_durations_df[self.val_durations_df["filename"] == f]["duration"].values[0]
 
         y_hat_strong = self(val_batch)
         y_strong = val_batch["strong"]
