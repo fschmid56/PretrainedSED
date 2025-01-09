@@ -100,7 +100,7 @@ pip install -r train_requirements.txt
 
 1. Follow the steps described [here](https://github.com/kkoutini/PaSST/tree/main/audioset#experiments-on-audioset) to obtain AudioSet, encoded as mp3 files and packed into HDF5 format.
 
-You will up with a directory containing three HDF5 files:
+You will end up with a directory containing three HDF5 files:
 * balanced_train_segments_mp3.hdf
 * unbalanced_train_segments_mp3.hdf
 * eval_segments_mp3.hdf
@@ -108,6 +108,7 @@ You will up with a directory containing three HDF5 files:
 2. We use the [Huggingface datasets](https://huggingface.co/docs/datasets/index) API for fast and memory-efficient loading of the dataset. The [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) file takes the dataset from Step 1 and converts it into a Huggingface dataset.
 
 Adapt the paths in [hf_dataset_gen/audioset_strong.py](hf_dataset_gen/audioset_strong.py) marked as TODOs (2x: hdf5 path and target path for HF dataset).
+
 3. Create the Hunggingface dataset:
 ```
 cd hf_dataset_gen
