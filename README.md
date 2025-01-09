@@ -146,7 +146,7 @@ Check out the results: https://api.wandb.ai/links/cp_tobi/tphswm5k
 Evaluate the AudioSet Strong pre-trained checkpoint of ATST-F:
 
 ```
-python ex_audioset_strong.py --model_name=ATST-F --pretrained=strong 
+python ex_audioset_strong.py --model_name=ATST-F --pretrained=strong --evaluate
 ```
 
 If everything is set up correctly, this should give a `val/psds1_macro_averaged` of around 46.1.
