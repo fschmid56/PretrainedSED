@@ -55,7 +55,7 @@ More example files can be downloaded from the [GitHub release](https://github.co
 
 ## Model Checkpoints
 
-The following is a list of checkpoints that we have created and worked with in our paper. For external checkpoints, we provide the download link. "Checkpoint Name" refers to the respective names in our [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1). **All model checkpoints** are automatically downloaded by running the code, or can be manually donwload from the [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1).
+The following is a list of checkpoints that we have created and worked with in our paper. For external checkpoints, we provide the download link. "Checkpoint Name" refers to the respective names in our [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1). **All model checkpoints** are automatically downloaded by running the code, or can be manually downloaded from the [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1).
 
 | Model      | Pre-Training | Checkpoint Name    | Download Link                                                                                                             | Reference                                                                        |
 |------------|--------------|--------------------|---------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
