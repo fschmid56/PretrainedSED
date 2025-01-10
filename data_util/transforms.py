@@ -53,7 +53,7 @@ class AddPseudoLabelsTransform:
         return self._opened_pseudo_hdf5
 
     def add_pseudo_label_transform(self, sample):
-        indices = [self.ex2pseudo_idx[fn] for fn in sample['filename']]
+        indices = [self.ex2pseudo_idx[fn.rstrip(".mp3")] for fn in sample['filename']]
         pseudo_strong = [torch.from_numpy(np.stack(self.pseudo_hdf5_file["strong_logits"][index])).float()
                          for index in indices]
         pseudo_strong = [torch.sigmoid(pseudo_strong[i]) for i in range(len(pseudo_strong))]

@@ -11,7 +11,7 @@ The codebase is **under construction**; the next steps involve:
 * Add a table outlining the external checkpoints used in this work [DONE]
 * Evaluation routine on the AudioSet frame-level annotations [DONE]
 * Include a cleaned version of the AudioSet Strong training routine [DONE]
-* Upload the ensemble logits for the AudioSet Strong dataset
+* Upload the ensemble logits for the AudioSet Strong dataset [DONE]
 * Demonstrate how the pre-trained transformer can be used for downstream tasks
 * Wrap this repository in an installable python package for easy use
 
@@ -128,8 +128,12 @@ export HF_DATASETS_CACHE=/share/hel/datasets/HF_datasets/cache/
 
 ### Download ensemble pseudo labels
 
-The size of a pseudo label file is around 50 GB, resulting from a pseudo label matrix (250 timesteps x 447 class predictions) stored for each
-file in the dataset (~100k recordings). We are currently figuring out how to best share these. Stay tuned!
+If you want to train on AudioSet Strong using Knowledge Distillation as described in the paper, you will have to download the 
+ensemble logits from [Zenodo](https://zenodo.org/records/14626113/files/audioset_strong_ensemble_logits.hdf5?download=1). The HDF5 file contains filenames (Youtube IDs) matched with the corresponding ensembled logits. The corresponding keys are "filenames" and "strong_logits". Ensemble Logits for one file are of shape 447 x 250 (number of classes x timeframes at 40 ms resolution). Ensemble Logits are stored in float16 format to save space.
+
+Check out [this code piece](https://github.com/fschmid56/PretrainedSED/blob/f62e9fb1566254766396cce0343a2de4156d3015/data_util/transforms.py#L37) if you want to learn how pseudo labels are loaded.
+
+For training, the pseudo-label file can simply be set via command line: ```--pseudo_labels_file=<location>``` 
 
 ### Run AudioSet Strong training
 
@@ -140,6 +144,13 @@ python ex_audioset_strong.py --model_name=ATST-F --seq_model_type=rnn --use_bala
 ```
 
 Check out the results: https://api.wandb.ai/links/cp_tobi/tphswm5k
+
+Example: Train ATST-F using Knowledge Distillation. 
+
+```
+python ex_audioset_strong.py --model_name=ATST-F --pretrained=weak --n_epochs=120 --wavmix_p=0.5 --freq_warp_p=0 --filter_augment_p=0 --mixstyle_p=0 --max_lr=1e-4 --distillation_loss_weight=0.9 --pseudo_labels_file=<path_to_pseudo_label_file_from_Zenodo>
+```
+
 
 
 ### Run AudioSet Strong evaluation
