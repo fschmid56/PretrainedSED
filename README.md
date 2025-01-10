@@ -129,7 +129,7 @@ export HF_DATASETS_CACHE=/share/hel/datasets/HF_datasets/cache/
 ### Download ensemble pseudo labels
 
 If you want to train on AudioSet Strong using Knowledge Distillation as described in the paper, you will have to download the 
-ensemble logits from [Zenodo](https://zenodo.org/records/14626113/files/audioset_strong_ensemble_logits.hdf5?download=1). The HDF5 file contains filenames (Youtube IDs) matched with the corresponding ensembled logits. The corresponding keys are "filenames" and "strong_logits". Ensemble Logits for one file are of shape 447 x 250 (number of classes x timeframes at 40 ms resolution). Ensemble Logits are stored in float16 format to save space.
+ensemble logits from [Zenodo](https://zenodo.org/records/14626113). The HDF5 file contains filenames (Youtube IDs) matched with the corresponding ensembled logits. The corresponding keys are "filenames" and "strong_logits". Ensemble Logits for one file are of shape 447 x 250 (number of classes x timeframes at 40 ms resolution). Ensemble Logits are stored in float16 format to save space.
 
 Check out [this code piece](https://github.com/fschmid56/PretrainedSED/blob/f62e9fb1566254766396cce0343a2de4156d3015/data_util/transforms.py#L37) if you want to learn how pseudo labels are loaded.
 
