@@ -137,7 +137,7 @@ Example: Train ATST-F using Knowledge Distillation.
 python ex_audioset_strong.py --model_name=ATST-F --pretrained=weak --n_epochs=120 --wavmix_p=0.5 --freq_warp_p=0 --filter_augment_p=0 --mixstyle_p=0 --max_lr=1e-4 --distillation_loss_weight=0.9 --pseudo_labels_file=<path_to_pseudo_label_file_from_Zenodo>
 ```
 
-
+Check out the results: https://api.wandb.ai/links/cp_tobi/2eh4cz80
 
 ### Run AudioSet Strong evaluation
 
@@ -175,11 +175,15 @@ The main script for fine-tuning is [ex_dcase2016task2.py](ex_dcase2016task2.py).
 
 To fine-tune the full ATST-F model, pre-trained on AudioSet Strong, with a layer-wise learning rate decay of 0.95, use the following command:
 
-```python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=ATST-F --pretrained=strong --lr_decay=0.95```
+```
+python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=ATST-F --pretrained=strong --lr_decay=0.95
+```
 
 To train only the linear prediction head on top of the frozen BEATs transformer, also pre-trained on AudioSet Strong, use this command:
 
-```python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=BEATs --pretrained=strong --transformer_frozen --max_lr=2e-1 --mixup_p=0 --wavmix_p=0 --no_adamw --weight_decay=0 --n_epochs=500```
+```
+python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=BEATs --pretrained=strong --transformer_frozen --max_lr=2e-1 --mixup_p=0 --wavmix_p=0 --no_adamw --weight_decay=0 --n_epochs=500
+```
 
 ## Results & Ablation Studies
 
