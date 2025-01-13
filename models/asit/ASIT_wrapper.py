@@ -53,8 +53,8 @@ class ASiTWrapper(BaseModelWrapper):
                 pt_params[10].append(p)
             elif 'blocks.11.' in k:
                 pt_params[11].append(p)
-            elif 'backbone.norm.weight' in k or 'backbone.norm.bias' in k:
+            elif 'asit.norm.weight' in k or 'asit.norm.bias' in k:
                 pt_params[11].append(p)
             else:
-                raise ValueError("Check layer-wise learning for frame-passt!")
+                raise ValueError(f"Check separate params for ASiT! Unknown key: {k}")
         return list(reversed(pt_params))

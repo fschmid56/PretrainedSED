@@ -49,8 +49,8 @@ class BEATsWrapper(BaseModelWrapper):
             elif ".layers.11." in k:
                 pt_params[11].append(p)
             elif (".post_extract_proj." in k or ".patch_embedding." in k or '.pos_conv.' in k
-                  or 'model.layer_norm.' in k or "model.encoder.layer_norm." in k):
+                  or 'beats.layer_norm.' in k or "beats.encoder.layer_norm." in k):
                 pt_params[0].append(p)
             else:
-                raise ValueError(f"Unexpected parameters name: {k}")
+                raise ValueError(f"Check separate params for BEATs! Unknown key: {k}")
         return list(reversed(pt_params))

@@ -60,7 +60,8 @@ class PLModule(pl.LightningModule):
         elif config.model_name == "M2D":
             m2d = M2DWrapper()
             model = PredictionsWrapper(m2d, checkpoint=f"M2D_{checkpoint}" if checkpoint else None,
-                                       seq_model_type=config.seq_model_type)
+                                       seq_model_type=config.seq_model_type,
+                                       embed_dim=m2d.m2d.cfg.feature_d)
         elif config.model_name == "ASIT":
             asit = ASiTWrapper()
             model = PredictionsWrapper(asit, checkpoint=f"ASIT_{checkpoint}" if checkpoint else None,
@@ -446,7 +447,9 @@ if __name__ == '__main__':
     parser.add_argument('--check_val_every_n_epoch', type=int, default=5)
 
     # model
-    parser.add_argument('--model_name', type=str, default="ATST-F")  # used also for training
+    parser.add_argument('--model_name', type=str,
+                        choices=["ATST-F", "BEATs", "fpasst", "M2D", "ASIT"],
+                        default="ATST-F")  # used also for training
     # "scratch" = no pretraining
     # "ssl" = SSL pre-trained
     # "weak" = AudioSet Weak pre-trained

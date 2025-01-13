@@ -38,7 +38,7 @@ def frame_shift(mels, labels, embeddings=None, pseudo_labels=None,
     return tuple(out_args)
 
 
-def time_mask(features, labels, embeddings=None, pseudo_labels=None, net_pooling=None,
+def time_mask(features, labels, embeddings=None, pseudo_labels=None, net_pooling=4,
               min_mask_ratio=0.05, max_mask_ratio=0.2):
     _, _, n_frame = labels.shape
 

@@ -82,5 +82,5 @@ class FPaSSTWrapper(BaseModelWrapper):
             elif k in ['norm.weight', 'norm.bias']:
                 pt_params[11].append(p)
             else:
-                raise ValueError("Check layer-wise learning for frame-passt!")
+                raise ValueError(f"Check separate params for frame-passt! Unexpected key: {k}")
         return list(reversed(pt_params))

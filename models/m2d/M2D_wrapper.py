@@ -48,5 +48,5 @@ class M2DWrapper(BaseModelWrapper):
             elif 'backbone.norm.weight' in k or 'backbone.norm.bias' in k:
                 pt_params[11].append(p)
             else:
-                raise ValueError("Check layer-wise learning for frame-passt!")
+                raise ValueError(f"Check separate params for M2D! Unknown key: {k}")
         return list(reversed(pt_params))

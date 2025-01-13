@@ -4,16 +4,14 @@ In this repository, we publish pre-trained models and code for the ICASSP'25 pap
 
 In this paper, we propose a pre-training pipeline for audio spectrogram transformers for frame-level sound event detection tasks. On top of common pre-training steps, we add a meticulously designed training routine on AudioSet frame-level annotations. For five transformers, we show that this additional pre-training step leads to substantial performance improvements on frame-level downstream tasks. We release all model checkpoints and hope that they will help researchers improve tasks that require high-quality frame-level representations. 
 
-The codebase is **under construction**; the next steps involve:
-* Upload all pre-trained checkpoints and model files [DONE]
-* Create a script that demonstrates how the pre-trained checkpoints can be loaded and used for inference [DONE]
-* Upload an arxiv version of the submitted paper [DONE]
-* Add a table outlining the external checkpoints used in this work [DONE]
-* Evaluation routine on the AudioSet frame-level annotations [DONE]
-* Include a cleaned version of the AudioSet Strong training routine [DONE]
-* Upload the ensemble logits for the AudioSet Strong dataset [DONE]
-* Demonstrate how the pre-trained transformer can be used for downstream tasks
-* Wrap this repository in an installable python package for easy use
+This repository includes:
+* All pre-trained checkpoints and model files (see [here](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1))
+* A script that demonstrates how the pre-trained checkpoints can be loaded and used for inference (see [here](https://github.com/fschmid56/PretrainedSED/blob/main/inference.py))
+* Add a table outlining the external checkpoints used in this work (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#model-checkpoints))
+* Evaluation routine on the AudioSet frame-level annotations (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#run-audioset-strong-evaluation)) 
+* The AudioSet Strong training routine (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#audioset-strong-pre-training))
+* The ensemble logits for the AudioSet Strong dataset (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#download-ensemble-pseudo-labels))
+* A file demonstrating how the pre-trained transformers can be fine-tuned on a downstream task (see [here](ex_dcase2016task2.py))
 
 ## Setting up Environment
 
@@ -150,6 +148,38 @@ python ex_audioset_strong.py --model_name=ATST-F --pretrained=strong --evaluate
 ```
 
 If everything is set up correctly, this should give a `val/psds1_macro_averaged` of around 46.
+
+## Fine-Tuning on Downstream Task
+
+We demonstrate how pre-trained transformers can be fine-tuned for the downstream Sound Event Detection task by using our transformers on [DCASE 2016 Task 2](https://dcase.community/challenge2016/task-sound-event-detection-in-synthetic-audio-results). This task focuses on detecting office sounds and is part of the [HEAR benchmark](https://hearbenchmark.com/hear-tasks.html).
+
+### Obtain DCASE 2016 Task 2 Dataset in HEAR format
+
+Follow the instructions on the [HEAR website](https://hearbenchmark.com/hear-tasks.html) to download the dataset in 16 kHz sampling rate. After completing the setup, your file tree should look similar to this:
+```
+hear_datasets/tasks/dcase2016_task2-hear2021-full/
+├── 16000
+├── 48000
+├── labelvocabulary.csv
+├── task_metadata.json
+├── test.json
+├── train.json
+└── valid.json
+```
+
+The ```16000``` folder contains audio files sampled at 16 kHz.
+
+### Run Fine-Tuning
+
+The main script for fine-tuning is [ex_dcase2016task2.py](ex_dcase2016task2.py). 
+
+To fine-tune the full ATST-F model, pre-trained on AudioSet Strong, with a layer-wise learning rate decay of 0.95, use the following command:
+
+```python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=ATST-F --pretrained=strong --lr_decay=0.95```
+
+To train only the linear prediction head on top of the frozen BEATs transformer, also pre-trained on AudioSet Strong, use this command:
+
+```python ex_dcase2016task2.py --task_path=hear_datasets/tasks/dcase2016_task2-hear2021-full --model_name=BEATs --pretrained=strong --transformer_frozen --max_lr=2e-1 --mixup_p=0 --wavmix_p=0 --no_adamw --weight_decay=0 --n_epochs=500```
 
 ## Results & Ablation Studies
 

@@ -155,6 +155,15 @@ class PredictionsWrapper(nn.Module):
         assert len(missing) == expected_missing
         assert len(unexpected) == 0
 
+    def separate_params(self):
+        if hasattr(self, "separate_params"):
+            return self.model.separate_params()
+        else:
+            raise NotImplementedError("The base model has no 'separate_params' method!'")
+
+    def has_separate_params(self):
+        return hasattr(self.model, "separate_params")
+
     def mel_forward(self, x):
         return self.model.mel_forward(x)
 

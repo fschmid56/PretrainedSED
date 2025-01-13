@@ -54,7 +54,7 @@ class ATSTWrapper(BaseModelWrapper):
             elif "blocks.11." in k or ".norm_frame." in k:
                 pt_params[11].append(p)
             else:
-                raise ValueError(f"Unexpected parameters name: {k}")
+                raise ValueError(f"Check separate params for ATST! Unknown key: {k}")
         return list(reversed(pt_params))
 
 
