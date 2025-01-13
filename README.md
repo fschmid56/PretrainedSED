@@ -38,6 +38,12 @@ pip3 install torch torchvision torchaudio
 pip3 install -r requirements.txt
  ```
 
+4. Install package for mp3 decoding:
+
+``` bash
+CFLAGS='-O3 -march=native' pip install https://github.com/f0k/minimp3py/archive/master.zip
+```
+
 ## Inference
 
 The script [inference.py](inference.py) demonstrates how to load a pre-trained model and run sound event detection on an audio file
@@ -77,24 +83,6 @@ The following is a list of checkpoints that we have created and worked with in o
 
 
 ## AudioSet Strong pre-training
-
-### Environment
-
-Activate conda environment:
-
-```
-conda activate ptsed
-```
-
-Install additional requirements for training:
-
-```
-CFLAGS='-O3 -march=native' pip install https://github.com/f0k/minimp3py/archive/master.zip
-```
-
-```
-pip install -r train_requirements.txt
-```
 
 ### Prepare Dataset
 
