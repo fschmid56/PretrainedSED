@@ -12,6 +12,7 @@ This repository includes:
 * The AudioSet Strong training routine (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#audioset-strong-pre-training))
 * The ensemble logits for the AudioSet Strong dataset (see [here](https://github.com/fschmid56/PretrainedSED?tab=readme-ov-file#download-ensemble-pseudo-labels))
 * A file demonstrating how the pre-trained transformers can be fine-tuned on a downstream task (see [here](ex_dcase2016task2.py))
+* **New:** added two low-complexity SED models ('frame_mn10' with 3.83M parameters and 'frame_mn06' with 1.62M parameters)
 
 ## Setting up Environment
 
@@ -57,28 +58,35 @@ is automatically downloaded and placed in the folder [resources](resources).
 The argument ```audio_file``` specifies the path to a single audio file. There is one [example file](test_files/752547__iscence__milan_metro_coming_in_station.wav) included. 
 More example files can be downloaded from the [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1).
 
+**Low-complexity** inference with customized MobileNet:
+
+ ```python
+python inference.py --cuda --model_name="frame_mn06" --audio_file="test_files/752547__iscence__milan_metro_coming_in_station.wav"
+ ```
+
 ## Model Checkpoints
 
 The following is a list of checkpoints that we have created and worked with in our paper. For external checkpoints, we provide the download link. "Checkpoint Name" refers to the respective names in our [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1). **All model checkpoints** are automatically downloaded by running the code, or can be manually downloaded from the [GitHub release](https://github.com/fschmid56/PretrainedSED/releases/tag/v0.0.1).
 
-| Model      | Pre-Training | Checkpoint Name    | External Download Link                                                                                                    | Reference                                                                        |
-|------------|--------------|--------------------|---------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| BEATs      | SSL          | BEATs_ssl.pt       | [here](https://1drv.ms/u/s!AqeByhGUtINrgcpxJUNDxg4eU0r-vA?e=qezPJ5)                                                       | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
-| BEATs      | Weak         | BEATs_weak.pt      | [here](https://1drv.ms/u/s!AqeByhGUtINrgcpke6_lRSZEKD5j2Q?e=A3FpOf)                                                       | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
-| BEATs      | Strong       | BEATs_strong_1.pt  | ours                                                                                                                      | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
-| ATST-Frame | SSL          | ATST-F_ssl.pt      | [here](https://drive.google.com/file/d/1bGJSZWlAIIJ6GL5Id5dW0PTB72DL-QDQ/view?usp=sharing)                                | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
-| ATST-Frame | Weak         | ATST-F_weak.pt     | [here](https://drive.google.com/file/d/1_xb0_n3UNbUG_pH1vLHTviLfsaSfCzxz/view?usp=drive_link)                             | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
-| ATST-Frame | Strong       | ATST-F_strong_1.pt | ours                                                                                                                      | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
-| fPaSST     | SSL          | fpasst_im.pt       | [here](https://dl.fbaipublicfiles.com/deit/deit_base_distilled_patch16_384-d0272ac0.pth)                                  | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
-| fPaSST     | Weak         | fpasst_weak.pt     | ours                                                                                                                      | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
-| fPaSST     | Strong       | fpasst_strong_1.pt | ours                                                                                                                      | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
-| ASiT       | SSL          | ASIT_ssl.pt        | [here](https://drive.google.com/file/d/11eaOU40jonpYZ3u_XI-XUSSWclv8qeR7/view?usp=drive_link)                             | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
-| ASiT       | Weak         | ASIT_weak.pt       | ours                                                                                                                      | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
-| ASiT       | Strong       | ASIT_strong_1.pt   | ours                                                                                                                      | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
-| M2D        | SSL          | M2D_ssl.pt         | [here](https://github.com/nttcslab/m2d/releases/download/v0.3.0/m2d_clap_vit_base-80x1001p16x16-240128_AS-FT_enconly.zip) | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
-| M2D        | Weak         | M2D_weak.pt        | [here](https://github.com/nttcslab/m2d/releases/download/v0.3.0/m2d_clap_vit_base-80x1001p16x16-240128_AS-FT_enconly.zip) | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
-| M2D        | Strong       | M2D_strong_1.pt    | ours                                                                                                                      | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
-
+| Model                | Pre-Training | Checkpoint Name    | External Download Link                                                                                                    | Reference                                                                        |
+|----------------------|--------------|--------------------|---------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| BEATs                | SSL          | BEATs_ssl.pt       | [here](https://1drv.ms/u/s!AqeByhGUtINrgcpxJUNDxg4eU0r-vA?e=qezPJ5)                                                       | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
+| BEATs                | Weak         | BEATs_weak.pt      | [here](https://1drv.ms/u/s!AqeByhGUtINrgcpke6_lRSZEKD5j2Q?e=A3FpOf)                                                       | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
+| BEATs                | Strong       | BEATs_strong_1.pt  | ours                                                                                                                      | [[1]](https://arxiv.org/pdf/2212.09058)                                          |
+| ATST-Frame           | SSL          | ATST-F_ssl.pt      | [here](https://drive.google.com/file/d/1bGJSZWlAIIJ6GL5Id5dW0PTB72DL-QDQ/view?usp=sharing)                                | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
+| ATST-Frame           | Weak         | ATST-F_weak.pt     | [here](https://drive.google.com/file/d/1_xb0_n3UNbUG_pH1vLHTviLfsaSfCzxz/view?usp=drive_link)                             | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
+| ATST-Frame           | Strong       | ATST-F_strong_1.pt | ours                                                                                                                      | [[2]](https://arxiv.org/pdf/2306.04186)                                          |
+| fPaSST               | SSL          | fpasst_im.pt       | [here](https://dl.fbaipublicfiles.com/deit/deit_base_distilled_patch16_384-d0272ac0.pth)                                  | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
+| fPaSST               | Weak         | fpasst_weak.pt     | ours                                                                                                                      | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
+| fPaSST               | Strong       | fpasst_strong_1.pt | ours                                                                                                                      | [[3]](https://arxiv.org/pdf/2110.05069), [[4]](https://arxiv.org/pdf/2407.12997) |
+| ASiT                 | SSL          | ASIT_ssl.pt        | [here](https://drive.google.com/file/d/11eaOU40jonpYZ3u_XI-XUSSWclv8qeR7/view?usp=drive_link)                             | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
+| ASiT                 | Weak         | ASIT_weak.pt       | ours                                                                                                                      | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
+| ASiT                 | Strong       | ASIT_strong_1.pt   | ours                                                                                                                      | [[5]](https://arxiv.org/pdf/2211.13189)                                          |
+| M2D                  | SSL          | M2D_ssl.pt         | [here](https://github.com/nttcslab/m2d/releases/download/v0.3.0/m2d_clap_vit_base-80x1001p16x16-240128_AS-FT_enconly.zip) | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
+| M2D                  | Weak         | M2D_weak.pt        | [here](https://github.com/nttcslab/m2d/releases/download/v0.3.0/m2d_clap_vit_base-80x1001p16x16-240128_AS-FT_enconly.zip) | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
+| M2D                  | Strong       | M2D_strong_1.pt    | ours                                                                                                                      | [[6]](https://arxiv.org/pdf/2406.02032)                                          |
+| Customized MobileNet | Strong       | frame_mn06.pt      | ours                                                                                                                      | **NEW**                                                                          |
+| Customized MobileNet | Strong       | frame_mn10.pt      | ours                                                                                                                      | **NEW**                                                                          |                   
 
 ## AudioSet Strong pre-training
 
