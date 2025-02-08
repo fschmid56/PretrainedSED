@@ -26,6 +26,7 @@ from data_util.audioset_strong import get_temporal_count_balanced_sample_weights
     get_weighted_sampler
 from data_util.audioset_classes import as_strong_train_classes, as_strong_eval_classes
 from models.frame_mn.Frame_MN_wrapper import FrameMNWrapper
+from models.frame_mn.utils import NAME_TO_WIDTH
 
 
 class PLModule(pl.LightningModule):
@@ -67,10 +68,11 @@ class PLModule(pl.LightningModule):
             asit = ASiTWrapper()
             model = PredictionsWrapper(asit, checkpoint=f"ASIT_{checkpoint}" if checkpoint else None,
                                        seq_model_type=config.seq_model_type)
-        elif config.model_name == "frame_mn":
-            frame_mn = FrameMNWrapper()
+        elif config.model_name.startswith("frame_mn"):
+            width = NAME_TO_WIDTH(config.model_name)
+            frame_mn = FrameMNWrapper(width)
             embed_dim = frame_mn.state_dict()['frame_mn.features.16.1.bias'].shape[0]
-            model = PredictionsWrapper(frame_mn, checkpoint="frame_mn_strong_1", embed_dim=embed_dim)
+            model = PredictionsWrapper(frame_mn, checkpoint=f"{config.model_name}_strong_1", embed_dim=embed_dim)
         else:
             raise NotImplementedError(f"Model {config.model_name} not (yet) implemented")
 
@@ -453,7 +455,8 @@ if __name__ == '__main__':
 
     # model
     parser.add_argument('--model_name', type=str,
-                        choices=["ATST-F", "BEATs", "fpasst", "M2D", "ASIT", "frame_mn"],
+                        choices=["ATST-F", "BEATs", "fpasst", "M2D", "ASIT"] + \
+                                [f"frame_mn{width}" for width in ["06", "10"]],
                         default="ATST-F")  # used also for training
     # "scratch" = no pretraining
     # "ssl" = SSL pre-trained

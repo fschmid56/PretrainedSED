@@ -27,7 +27,7 @@ class FrameMNWrapper(BaseModelWrapper):
         )
 
         self.frame_mn = get_model(
-            width_mult=1.0
+            width_mult=width_mult
         )
 
     def mel_forward(self, x):

@@ -12,6 +12,7 @@ from models.m2d.M2D_wrapper import M2DWrapper
 from models.asit.ASIT_wrapper import ASiTWrapper
 from models.frame_mn.Frame_MN_wrapper import FrameMNWrapper
 from models.prediction_wrapper import PredictionsWrapper
+from models.frame_mn.utils import NAME_TO_WIDTH
 
 
 def sound_event_detection(args):
@@ -36,10 +37,11 @@ def sound_event_detection(args):
     elif model_name == "ASIT":
         asit = ASiTWrapper()
         model = PredictionsWrapper(asit, checkpoint="ASIT_strong_1")
-    elif model_name == "frame_mn":
-        frame_mn = FrameMNWrapper()
+    elif model_name.startswith("frame_mn"):
+        width = NAME_TO_WIDTH(model_name)
+        frame_mn = FrameMNWrapper(width)
         embed_dim = frame_mn.state_dict()['frame_mn.features.16.1.bias'].shape[0]
-        model = PredictionsWrapper(frame_mn, checkpoint="frame_mn_strong_1", embed_dim=embed_dim)
+        model = PredictionsWrapper(frame_mn, checkpoint=f"{model_name}_strong_1", embed_dim=embed_dim)
     else:
         raise NotImplementedError(f"Model {model_name} not (yet) implemented")
 
@@ -120,5 +122,5 @@ if __name__ == "__main__":
     parser.add_argument('--cuda', action='store_true', default=False)
     args = parser.parse_args()
 
-    assert args.model_name in ["BEATs", "ASIT", "ATST-F", "fpasst", "M2D", "frame_mn"]
+    assert args.model_name in ["BEATs", "ASIT", "ATST-F", "fpasst", "M2D"] or args.model_name.startswith("frame_mn")
     sound_event_detection(args)

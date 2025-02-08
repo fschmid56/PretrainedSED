@@ -10,6 +10,8 @@ CHECKPOINT_URLS['ATST-F_strong_1'] = GITHUB_RELEASE_URL + "ATST-F_strong_1.pt"
 CHECKPOINT_URLS['ASIT_strong_1'] = GITHUB_RELEASE_URL + "ASIT_strong_1.pt"
 CHECKPOINT_URLS['fpasst_strong_1'] = GITHUB_RELEASE_URL + "fpasst_strong_1.pt"
 CHECKPOINT_URLS['M2D_strong_1'] = GITHUB_RELEASE_URL + "M2D_strong_1.pt"
+for width in ['06', '10']:
+    CHECKPOINT_URLS[f'frame_mn{width}_strong_1'] = GITHUB_RELEASE_URL + f'frame_mn{width}_strong_1.pt'
 
 # weak
 CHECKPOINT_URLS['BEATs_weak'] = GITHUB_RELEASE_URL + "BEATs_weak.pt"
