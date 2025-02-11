@@ -112,7 +112,7 @@ python audioset_strong.py
 4. The path to the dataset is specified via an environment variable. When you access the dataset for training or evaluation,
 set the environment variable. For example, in our case, the Huggingface dataset path is set to:
 
-```/share/hel/datasets/HF_datasets/local/audioset_strong_official```
+```/share/hel/datasets/HF_datasets/local/audioset_strong```
 
 And therefore we set the following environment variable:
 

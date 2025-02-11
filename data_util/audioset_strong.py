@@ -94,7 +94,7 @@ def get_training_dataset(
     ds_list = []
 
     with catchtime("Loading audioset_strong"):
-        as_ds = datasets.load_from_disk(get_hf_local_path("audioset_strong_official"))
+        as_ds = datasets.load_from_disk(get_hf_local_path("audioset_strong"))
 
     # label encode transformation
     if label_encoder is not None:

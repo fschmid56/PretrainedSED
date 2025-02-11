@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
     # TODO: specify location you want to store AudioSet Strong Huggingface Dataset in
     dataset.save_to_disk(
-        f"/share/hel/datasets/HF_datasets/local/audioset_strong_official",
+        f"/share/hel/datasets/HF_datasets/local/audioset_strong",
         max_shard_size="2GB",
         num_proc=1,
     )
