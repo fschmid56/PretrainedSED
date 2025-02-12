@@ -1,11 +1,11 @@
+import csv
 import os
+
 import datasets
+import h5py
 import numpy as np
 import pandas as pd
-import h5py
-import csv
 from datasets import Value, Sequence
-
 
 _CITATION = "@INPROCEEDINGS{9414579, author={Hershey, Shawn and Ellis, Daniel P W and Fonseca, Eduardo and Jansen, Aren and Liu, Caroline and Channing Moore, R and Plakal, Manoj}, booktitle={ICASSP 2021 - 2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, title={The Benefit of Temporally-Strong Labels in Audio Event Classification}, year={2021},volume={},number={},pages={366-370},keywords={Training;Conferences;Signal processing;Acoustics;Speech processing;AudioSet;audio event classification;explicit negatives;temporally-strong labels},doi={10.1109/ICASSP39728.2021.9414579}}"
 
@@ -143,9 +143,12 @@ class AudiosetStrong(datasets.GeneratorBasedBuilder):
                     event["event_label_id"] = str(row["label_id"])
                     event_list.append(event)
 
+                weak_labels = np.unpackbits(target[name_to_idx[yid]], axis=-1, count=len(idx_label_map)).astype(
+                    np.float32)
+
                 data_row = {
-                    "label_ids": [idx_id_map[i] for i in np.where(target[name_to_idx[yid]])[0]],
-                    "labels": [idx_label_map[i] for i in np.where(target[name_to_idx[yid]])[0]],
+                    "label_ids": [idx_id_map[i] for i in np.where(weak_labels)[0]],
+                    "labels": [idx_label_map[i] for i in np.where(weak_labels)[0]],
                     "filepath": os.path.join(audio_path, str(yid) + '.mp3'),
                     "filename": str(yid) + '.mp3',
                     "events": event_list
