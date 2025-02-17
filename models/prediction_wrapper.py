@@ -130,6 +130,7 @@ class PredictionsWrapper(nn.Module):
             keys_to_remove.append('strong_head.weight')
             num_seq_model_keys = len([key for key in self.seq_model.state_dict()])
             expected_missing = len(keys_to_remove) + num_seq_model_keys
+            strict = False
         else:
             # head type is not None
             if n_classes_weak_in_sd != self.n_classes_weak:
