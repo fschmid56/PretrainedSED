@@ -472,7 +472,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_balanced_sampler', action='store_true', default=False)
     parser.add_argument('--distillation_loss_weight', type=float, default=0.0)
     parser.add_argument('--epoch_len', type=int, default=100000)
-    parser.add_argument('--median_window', type=int, default=12)
+    parser.add_argument('--median_window', type=int, default=9)
 
     # augmentation
     parser.add_argument('--wavmix_p', type=float, default=0.8)

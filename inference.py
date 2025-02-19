@@ -118,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument('--audio_file', type=str,
                         default='test_files/752547__iscence__milan_metro_coming_in_station.wav')
     parser.add_argument('--detection_thresholds', type=float, default=(0.1, 0.2, 0.5))
-    parser.add_argument('--median_window', type=float, default=12)
+    parser.add_argument('--median_window', type=float, default=9)
     parser.add_argument('--cuda', action='store_true', default=False)
     args = parser.parse_args()
 
