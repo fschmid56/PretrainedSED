@@ -253,7 +253,7 @@ This section presents the main results reported [in the paper](https://arxiv.org
   * Removing the top Transformer layers, which may overfit to AudioSet Weak labels, decreased performance.
   * For MAMBA, only a single layer was feasible due to memory constraints.
 
-| PSDS1        | RNN:1 |   RNN:2   | RNN:3 |   TF:1    | TF:2  |   TF:3    | ATT:1 |   ATT:2   | ATT:3 |  MAMBA:1  |
+|              | RNN:1 |   RNN:2   | RNN:3 |   TF:1    | TF:2  |   TF:3    | ATT:1 |   ATT:2   | ATT:3 |  MAMBA:1  |
 |:-------------|:-----:|:---------:|:-----:|:---------:|:-----:|:---------:|:-----:|:---------:|:-----:|:---------:|
 | **dim=256**  | 8.72  |   3.76    | 3.10  |   34.25   | 34.62 |   34.05   | 40.08 |   39.70   | 39.55 |   40.27   | 
 | **dim=512**  | 40.62 |   7.26    | 0.12  |   40.41   | 41.11 |   40.30   | 41.78 |   41.91   | 41.95 |   41.25   | 
