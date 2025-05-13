@@ -19,7 +19,7 @@ This repository includes:
 1. If needed, create a new environment with python 3.9 and activate it:
 
 ```bash
-conda create -n ptsed python=3.9
+conda create -n ptsed python=3.9 cython
 conda activate ptsed
  ```
 

@@ -3,7 +3,6 @@ librosa
 pandas
 timm
 nnAudio
-Cython
 av>=10.0.0
 h5py>=3.8.0
 jsonpickle>=3.0.1
