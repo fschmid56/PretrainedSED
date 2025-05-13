@@ -1,7 +1,6 @@
 numpy<2
 librosa
 pandas
-sed_scores_eval
 timm
 nnAudio
 Cython
